@@ -9,12 +9,12 @@ public class CloudStorageController {
     public ListView<String> fileList;
 
     Controller controller;
-    Path clientPath = Paths.get("C:\\CloudStorage");
+    Path clientPath = Paths.get("C:","CloudStorage");
     Path selectedFilePath;
 
     public void clickFileList(){
-        selectedFilePath = Paths.get("C:\\CloudStorage\\" + fileList.getSelectionModel().getSelectedItem());
-    }
+        selectedFilePath = Paths.get(clientPath.toAbsolutePath().toString(), fileList.getSelectionModel().getSelectedItem());
+      }
 
     public void deleteFile(){
         try{

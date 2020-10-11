@@ -1,62 +1,77 @@
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
-import java.util.List;
-import java.util.Vector;
+import java.nio.channels.SocketChannel;
+import java.nio.file.Path;
+import java.util.Iterator;
 
-public class CloudStorageServer {
+public class CloudStorageServer implements Runnable {
     private ServerSocketChannel serverSocketChannel;
     private Selector selector;
     private ByteBuffer buf = ByteBuffer.allocate(256);
     private int acceptedClientIndex = 1;
     final int PORT = 8189;
+    Path clientPath;
 
-    private List<ClientHandler> clients;
-
-    public CloudStorageServer(){
-        clients = new Vector<ClientHandler>();
-
-        serverSocketChannel = ServerSocketChannel.open();
-        serverSocketChannel.socket().bind(new InetSocketAddress(8189));
-        serverSocketChannel.configureBlocking(false);
-        selector = Selector.open();
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-
-
-
-
-
-        try{
-            server = new ServerSocket(PORT);
-            System.out.println("Сервер запущен!");
-            while(true){
-                socket = server.accept();
-                System.out.println("Клиент подключился.");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try{
-                server.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    public CloudStorageServer() {
+        try {
+            serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.socket().bind(new InetSocketAddress(8189));
+            serverSocketChannel.configureBlocking(false);
+            selector = Selector.open();
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
-    public void subscribe(ClientHandler clientHandler){
-        clients.add(clientHandler);
+    @Override
+    public void run() {
+        try {
+            System.out.println("Сервер запущен!");
+            Iterator<SelectionKey> iter;
+            SelectionKey key;
+            while (this.serverSocketChannel.isOpen()) {
+                selector.select();
+                iter = selector.selectedKeys().iterator();
+                while (iter.hasNext()) {
+                    key = iter.next();
+                    iter.remove();
+                    if (key.isAcceptable()) {
+                        this.handleAccept(key);
+                    }
+                    if (key.isReadable()) {
+                        this.handleRead(key);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void unsubsribe(ClientHandler clientHandler){
-        clients.remove(clientHandler);
+    private void handleAccept(SelectionKey key) throws IOException {
+        SocketChannel sc = ((ServerSocketChannel)key.channel()).accept();
+        String clientName = "Клиент#" + acceptedClientIndex;
+        acceptedClientIndex++;
+        sc.configureBlocking(false);
+        sc.register(selector, SelectionKey.OP_READ, clientName);
+        System.out.println("Подключился новый клиент.");
     }
 
-
+    private void handleRead(SelectionKey key) throws IOException {
+        SocketChannel sc = (SocketChannel)key.channel();
+        buf.clear();
+        int read = 0;
+        while((read = sc.read(buf)) > 0) {
+            buf.flip();
+            byte[] bytes = new byte[buf.limit()];
+            buf.get(bytes);
+            //Заливаем в файл
+            buf.clear();
+        }
+    }
 }

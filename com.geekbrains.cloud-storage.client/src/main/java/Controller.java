@@ -10,9 +10,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -26,43 +26,16 @@ public class Controller implements Initializable {
     Socket socket;
     final String IP_ADDRESS = "localhost";
     final int PORT = 8189;
-    //Channel объявление
-
-    private boolean authenticated;
+    ObjectOutputStream out;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setAuthenticated(false);
         cloudStorageStage = createCloudStorageWindow();
     }
 
-    public void connect(){
-        try{
-            socket = new Socket(IP_ADDRESS, PORT);
-            //Открываем из сокета channel?
-            new Thread(() -> {
-                //Цикл работы
-                try {
-                    //Работа
-                } catch (RuntimeException ex){
-                    ex.printStackTrace();
-                } /*catch (IOException ex){
-                    ex.printStackTrace();
-                }*/ finally {
-                    System.out.println("Клиент отключился.");
-                    setAuthenticated(false);
-                    try {
-                        socket.close();
-                    } catch (IOException ex){
-                        ex.printStackTrace();
-                    }
-                }
-            }).start();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void connect() throws IOException {
+        socket = new Socket(IP_ADDRESS, PORT);
+        out = new ObjectOutputStream(socket.getOutputStream());
     }
 
     private Stage createCloudStorageWindow(){
@@ -82,11 +55,13 @@ public class Controller implements Initializable {
         }
         return stage;
     }
-    public void showCloudStorageWindow(){
-        cloudStorageStage.show();
-    }
 
-    public void setAuthenticated(boolean authenticated) {
-        this.authenticated = authenticated;
+    public void showCloudStorageWindow(){
+        try {
+            connect();
+            cloudStorageStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
