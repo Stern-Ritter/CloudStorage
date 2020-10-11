@@ -19,4 +19,7 @@ public class FilePackage implements Serializable {
         this.filename = filename;
         this.data = Files.readAllBytes(Paths.get(path));
     }
+    public FilePackage(String filename) throws IOException {
+        this.filename = filename;
+    }
 }

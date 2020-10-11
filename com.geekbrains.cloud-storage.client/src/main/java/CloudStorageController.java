@@ -1,6 +1,10 @@
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
@@ -8,18 +12,73 @@ public class CloudStorageController {
     @FXML
     public ListView<String> fileList;
     @FXML
-    public ListView<String> fileListServer;
+    public ListView<String> serverFileList;
 
+    Socket socket;
+    final String IP_ADDRESS = "localhost";
+    final int PORT = 8189;
+    ObjectInputStream in;
+    ObjectOutputStream out;
 
     AuthController controller;
     Path clientPath = Paths.get("C:","CloudStorage");
     Path selectedFilePath;
+    String selectedServerFilePath;
+
+    public void connect() {
+        try {
+            socket = new Socket(IP_ADDRESS, PORT);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
+            new Thread(() -> {
+                try {
+                    while(true){
+                        byte num = in.readByte();
+                        if(num == 16){
+                            try {
+                                FileListPackage inputPackage = (FileListPackage) in.readObject();
+                                Platform.runLater(() -> {
+                                    serverFileList.getItems().clear();
+                                    serverFileList.getItems().addAll(inputPackage.getFileList());
+                                });
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                } catch (RuntimeException ex) {
+                    ex.printStackTrace();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } finally {
+                    System.out.println("Клиент отключен.");
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public void sendFile(){
         try {
             FilePackage filePackage = new FilePackage(selectedFilePath.toAbsolutePath().toString(), selectedFilePath.getFileName().toString());
-            controller.out.writeByte(15);
-            controller.out.writeObject(filePackage);
+            out.writeByte(15);
+            out.writeObject(filePackage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteServerFile(){
+        try {
+        FilePackage filePackage = new FilePackage(selectedServerFilePath);
+        out.writeByte(17);
+        out.writeObject(filePackage);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -27,8 +86,8 @@ public class CloudStorageController {
 
     public void getFileList(){
         try {
-            controller.out.writeByte(16);
-            controller.out.flush();
+            out.writeByte(16);
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -38,9 +97,13 @@ public class CloudStorageController {
         selectedFilePath = Paths.get(clientPath.toAbsolutePath().toString(), fileList.getSelectionModel().getSelectedItem());
       }
 
+    public void clickServerFileList(){
+        selectedServerFilePath = serverFileList.getSelectionModel().getSelectedItem();
+        System.out.println(selectedServerFilePath);
+    }
+
     public void deleteFile(){
         try{
-            System.out.println(selectedFilePath);
             Files.delete(selectedFilePath);
         } catch (IOException ex){
             ex.printStackTrace();

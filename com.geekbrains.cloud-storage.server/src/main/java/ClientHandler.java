@@ -37,6 +37,16 @@ public class ClientHandler {
                             FileListPackage outputPackage = getFileList();
                             out.writeObject(outputPackage);
                         }
+                        if(num == 17){
+                            try{
+                                FilePackage inputPackage = (FilePackage) in.readObject();
+                                String filename = inputPackage.getFilename();
+                                Path path = Paths.get(clientPath.toAbsolutePath().toString(),filename);
+                                Files.delete(path);
+                            } catch (ClassNotFoundException ex){
+                                ex.printStackTrace();
+                            }
+                        }
                     }
                 }  catch (IOException ex){
                     ex.printStackTrace();
