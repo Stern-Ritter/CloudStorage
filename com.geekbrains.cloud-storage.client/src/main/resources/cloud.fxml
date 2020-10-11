@@ -10,7 +10,7 @@
         <ListView fx:id="fileList" minWidth="180" onMouseClicked="#clickFileList"/>
     </VBox>
     <HBox alignment="CENTER" spacing="5">
-        <Button text = "Передать на сервер" minWidth="60"/>
+        <Button text = "Передать на сервер" onAction="#sendFile" minWidth="60"/>
         <Button text = "Удалить" onAction="#deleteFile" minWidth="60"/>
         <Button text = "Обновить" onAction="#updateFileList" minWidth="60"/>
     </HBox>

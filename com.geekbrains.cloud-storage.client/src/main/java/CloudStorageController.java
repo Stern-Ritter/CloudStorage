@@ -7,11 +7,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 public class CloudStorageController {
     @FXML
     public ListView<String> fileList;
-
     Controller controller;
     Path clientPath = Paths.get("C:","CloudStorage");
     Path selectedFilePath;
 
+    public void sendFile(){
+        try {
+            FilePackage filePackage = new FilePackage(selectedFilePath.toAbsolutePath().toString(), selectedFilePath.getFileName().toString());
+            controller.out.writeObject(filePackage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public void clickFileList(){
         selectedFilePath = Paths.get(clientPath.toAbsolutePath().toString(), fileList.getSelectionModel().getSelectedItem());
       }
