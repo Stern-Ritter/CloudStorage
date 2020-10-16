@@ -18,5 +18,12 @@
         <maven.complier.source>1.8</maven.complier.source>
         <maven.complier.targe>1.8</maven.complier.targe>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.42.Final</version>
+        </dependency>
+    </dependencies>
 
 </project>

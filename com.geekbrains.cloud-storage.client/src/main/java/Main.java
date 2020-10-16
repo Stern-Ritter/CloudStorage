@@ -12,6 +12,7 @@ public class Main extends Application {
         primaryStage.setTitle("Cloud storage");
         primaryStage.setScene(new Scene(root, 800, 640));
         primaryStage.show();
+        Network.getInstance().start();
     }
 
     public static void main(String[] args) {

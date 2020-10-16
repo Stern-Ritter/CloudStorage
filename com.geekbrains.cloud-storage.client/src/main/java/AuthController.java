@@ -47,6 +47,5 @@ public class AuthController implements Initializable {
 
     public void showCloudStorageWindow(){
             cloudStorageStage.show();
-            cloudStorageController.connect();
     }
 }

@@ -1,24 +1,34 @@
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.List;
-import java.util.Vector;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class CloudStorageServer {
-    private List<ClientHandler> clients;
-    final int PORT = 8189;
+    private final int PORT = 8189;
 
-    public CloudStorageServer() {
-        clients = new Vector<>();
-        try (ServerSocket server = new ServerSocket(PORT)) {
-            System.out.println("Сервер запущен.");
-            while(true){
-                Socket socket = server.accept();
-                System.out.println("Клиент подключился.");
-                new ClientHandler(this, socket);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void start() {
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        try {
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            socketChannel.pipeline().addLast(new ServerHandler());
+                        }
+                    });
+            ChannelFuture future = serverBootstrap.bind(PORT).sync();
+            future.channel().closeFuture().sync();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
         }
     }
 }
