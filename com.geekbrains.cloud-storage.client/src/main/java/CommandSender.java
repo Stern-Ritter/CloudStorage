@@ -16,7 +16,6 @@ public class CommandSender {
         channel.writeAndFlush(buf);
         //Записываем в поток длинну имени файла
         byte[] filenameBytes = path.getFileName().toString().getBytes(StandardCharsets.UTF_8);
-        System.out.println(path.getFileName());
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
         buf.writeInt(filenameBytes.length);
         channel.writeAndFlush(buf);
@@ -53,7 +52,21 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte)17);
+        buf.writeByte((byte)16);
+        channel.writeAndFlush(buf);
+    }
+
+    public static void sendFileRequest(String path, Channel channel){
+        ByteBuf buf = null;
+        buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+        buf.writeByte((byte) 14);
+        channel.writeAndFlush(buf);
+        byte[] filenameBytes = path.getBytes(StandardCharsets.UTF_8);
+        buf = ByteBufAllocator.DEFAULT.directBuffer(4);
+        buf.writeInt(filenameBytes.length);
+        channel.writeAndFlush(buf);
+        buf = ByteBufAllocator.DEFAULT.directBuffer(filenameBytes.length);
+        buf.writeBytes(filenameBytes);
         channel.writeAndFlush(buf);
     }
 }

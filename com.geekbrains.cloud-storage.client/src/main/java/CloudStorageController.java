@@ -1,12 +1,9 @@
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 
 public class CloudStorageController {
     @FXML
@@ -35,54 +32,36 @@ public class CloudStorageController {
         CommandSender.sendFileListRequest(Network.getInstance().getCurrentChannel());
     }
 
+    public void sendFileRequest(){
+        CommandSender.sendFileRequest(selectedServerFilePath,Network.getInstance().getCurrentChannel());
+    }
+
     public void clickFileListItem(){
         selectedFilePath = Paths.get(clientPath.toAbsolutePath().toString(), fileList.getSelectionModel().getSelectedItem());
       }
 
     public void clickServerFileListItem(){
         selectedServerFilePath = serverFileList.getSelectionModel().getSelectedItem();
-        System.out.println(selectedServerFilePath);
     }
 
     public void deleteFile(){
-        try{
-            Files.delete(selectedFilePath);
-        } catch (IOException ex){
-            ex.printStackTrace();
+        try {
+            FileHandler.deleteFile(selectedFilePath);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         updateFileList();
     }
 
     public void updateFileList() {
         fileList.getItems().clear();
-        if (Files.exists(clientPath)){
-            try {
-                Files.walkFileTree(clientPath, new FileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        fileList.getItems().add(file.getFileName().toString());
-                         return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+        fileList.getItems().addAll(FileHandler.getFileList(clientPath));
     }
 
+    public void updateServerFileList(List<String> list) {
+        Platform.runLater(() -> {
+            serverFileList.getItems().clear();
+            serverFileList.getItems().addAll(list);
+        });
+    }
 }

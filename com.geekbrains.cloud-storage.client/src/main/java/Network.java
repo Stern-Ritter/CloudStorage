@@ -34,7 +34,7 @@ public class Network {
                         .remoteAddress(IP_ADDRESS, PORT)
                         .handler(new ChannelInitializer<SocketChannel>() {
                             protected void initChannel(SocketChannel socketChannel) throws Exception {
-                                socketChannel.pipeline().addLast();
+                                socketChannel.pipeline().addLast(new InClientHandler());
                                 currentChannel = socketChannel;
                             }
                         });

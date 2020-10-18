@@ -19,7 +19,7 @@ public class CloudStorageServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new ServerHandler());
+                            socketChannel.pipeline().addLast(new OutServerHandler(),new InServerHandler());
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(PORT).sync();

@@ -39,6 +39,7 @@ public class AuthController implements Initializable {
             stage.initModality(Modality.APPLICATION_MODAL);
             cloudStorageController = fxmlLoader.getController();
             cloudStorageController.controller = this;
+            InClientHandler.cloudStorageController = cloudStorageController;
         } catch (IOException e){
             e.printStackTrace();
         }
