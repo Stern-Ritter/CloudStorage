@@ -1,3 +1,5 @@
+package client;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -67,6 +69,23 @@ public class CommandSender {
         channel.writeAndFlush(buf);
         buf = ByteBufAllocator.DEFAULT.directBuffer(filenameBytes.length);
         buf.writeBytes(filenameBytes);
+        channel.writeAndFlush(buf);
+    }
+
+    public static void sendLoginPassword(String login, int hashPassword, Channel channel){
+        ByteBuf buf = null;
+        buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+        buf.writeByte((byte)9);
+        channel.writeAndFlush(buf);
+        byte[] loginBytes = login.getBytes(StandardCharsets.UTF_8);
+        buf = ByteBufAllocator.DEFAULT.directBuffer(4);
+        buf.writeInt(loginBytes.length);
+        channel.writeAndFlush(buf);
+        buf = ByteBufAllocator.DEFAULT.directBuffer(loginBytes.length);
+        buf.writeBytes(loginBytes);
+        channel.writeAndFlush(buf);
+        buf = ByteBufAllocator.DEFAULT.directBuffer(4);
+        buf.writeInt(hashPassword);
         channel.writeAndFlush(buf);
     }
 }

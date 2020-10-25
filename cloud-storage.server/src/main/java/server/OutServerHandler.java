@@ -1,3 +1,6 @@
+package server;
+
+import common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -40,7 +43,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             ctx.writeAndFlush(region);
         }
         if(readed == (byte)16) {
-            System.out.println("PROCESS: Start file list sending.");
+            Server.logger.info("PROCESS: Start file list sending.");
             String result = FileHandler.fileListToString(FileHandler.getFileList(InServerHandler.userPath));
             byte[] send = result.getBytes();
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(send.length + 5);
@@ -48,7 +51,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             buf.writeInt(send.length);
             buf.writeBytes(send);
             ctx.writeAndFlush(buf);
-            System.out.println("PROCESS: File list sending success.");
+            Server.logger.info("PROCESS: File list sending success.");
         }
     }
     @Override

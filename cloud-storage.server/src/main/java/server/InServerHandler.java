@@ -1,3 +1,6 @@
+package server;
+
+import common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -6,6 +9,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 public class InServerHandler extends ChannelInboundHandlerAdapter {
@@ -30,12 +34,12 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("PROCESS: Client connected.");
+        Server.logger.info("PROCESS: Client connected.");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("PROCESS: Client disconnected.");
+        Server.logger.info("PROCESS: Client disconnected.");
     }
 
     @Override
@@ -48,28 +52,28 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                 byte readed = buf.readByte();
                 if(readed == (byte)14){
                     currentState = State.NAME_LENGTH_TO_SEND;
-                    System.out.println("PROCESS: Start file sending.");
+                    Server.logger.info("PROCESS: Start file sending.");
                 }
                 if (readed == (byte) 15) {
                     currentState = State.NAME_LENGTH;
                     receivedFileLength = 0L;
-                    System.out.println("PROCESS: Start file receiving.");
+                    Server.logger.info("PROCESS: Start file receiving.");
                 } else if (readed == (byte) 16) {
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                     sendBuf.writeByte((byte) 16);
                     ctx.writeAndFlush(sendBuf);
                 } else if (readed == (byte) 17) {
                     currentState = State.NAME_LENGTH_TO_DELETE;
-                    System.out.println("PROCESS: Start file deleting.");
+                    Server.logger.info("PROCESS: Start file deleting.");
                 } else {
-                    System.out.println("ERROR: Invalid first byte.");
+                    Server.logger.error("Invalid first byte.");
                 }
             }
 
             if (currentState == State.NAME_LENGTH) {
                 if (buf.readableBytes() >= 4) {
                     nameLength = buf.readInt();
-                    System.out.println("PROCESS: Get filename length.");
+                    Server.logger.info("PROCESS: Get filename length.");
                     currentState = State.NAME;
                 }
             }
@@ -77,7 +81,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
             if (currentState == State.NAME_LENGTH_TO_DELETE) {
                 if (buf.readableBytes() >= 4) {
                     nameLength = buf.readInt();
-                    System.out.println("PROCESS: Get filename to delete length.");
+                    Server.logger.info("PROCESS: Get filename to delete length.");
                     currentState = State.NAME_TO_DELETE;
                 }
             }
@@ -85,7 +89,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
             if (currentState == State.NAME_LENGTH_TO_SEND) {
                 if (buf.readableBytes() >= 4) {
                     nameLength = buf.readInt();
-                    System.out.println("PROCESS: Get filename to send length.");
+                    Server.logger.info("PROCESS: Get filename to send length.");
                     currentState = State.NAME_TO_SEND;
                 }
             }
@@ -94,7 +98,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                 if (buf.readableBytes() >= nameLength) {
                     byte[] fileName = new byte[nameLength];
                     buf.readBytes(fileName);
-                    System.out.println("PROCESS: Filename received - " + new String(fileName, "UTF-8"));
+                    Server.logger.info("PROCESS: Filename received - {} .", new String(fileName, StandardCharsets.UTF_8));
                     out = new BufferedOutputStream(new FileOutputStream(userPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
                     currentState = State.FILE_LENGTH;
                 }
@@ -104,15 +108,15 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                 if (buf.readableBytes() >= nameLength) {
                     byte[] fileName = new byte[nameLength];
                     buf.readBytes(fileName);
-                    System.out.println("PROCESS: Filename to delete received - " + new String(fileName, "UTF-8"));
+                    Server.logger.info("PROCESS: Filename to delete received - {} .", new String(fileName, StandardCharsets.UTF_8));
                     try {
                         FileHandler.deleteFile(Paths.get(userPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
-                        System.out.println("PROCESS: Delete operation success.");
+                        Server.logger.info("PROCESS: Delete operation success.");
                         sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                         sendBuf.writeByte((byte) 16);
                         ctx.writeAndFlush(sendBuf);
                     } catch (IOException ex){
-                        System.out.println("ERROR: Delete operation failed.");
+                        Server.logger.error("Delete operation failed.");
                     }
                     currentState = State.COM;
                 }
@@ -122,8 +126,8 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                 if (buf.readableBytes() >= nameLength) {
                     byte[] fileName = new byte[nameLength];
                     buf.readBytes(fileName);
-                    String send = new String(fileName, "UTF-8");
-                    System.out.println("PROCESS: Filename to send received - " + send);
+                    String send = new String(fileName, StandardCharsets.UTF_8);
+                    Server.logger.info("PROCESS: Filename to send received - {}.", send);
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(nameLength + 1);
                     sendBuf.writeByte((byte) 14);
                     sendBuf.writeBytes(fileName);
@@ -135,7 +139,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
             if (currentState == State.FILE_LENGTH) {
                 if (buf.readableBytes() >= 8) {
                     fileLength = buf.readLong();
-                    System.out.println("PROCESS: File length received - " + fileLength);
+                    Server.logger.info("PROCESS: File length received - {}.", fileLength);
                     currentState = State.FILE;
                 }
             }
@@ -146,7 +150,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     receivedFileLength++;
                     if (fileLength == receivedFileLength) {
                         currentState = State.COM;
-                        System.out.println("PROCESS: File received.");
+                        Server.logger.info("PROCESS: File received.");
                         sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                         sendBuf.writeByte((byte) 16);
                         ctx.writeAndFlush(sendBuf);

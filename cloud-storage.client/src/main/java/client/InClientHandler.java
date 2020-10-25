@@ -1,3 +1,6 @@
+package client;
+
+import common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -5,6 +8,7 @@ import javafx.application.Platform;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -76,7 +80,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                 if (buf.readableBytes() >= nameLength) {
                     byte[] fileName = new byte[nameLength];
                     buf.readBytes(fileName);
-                    System.out.println("PROCESS: Filename received - " + new String(fileName, "UTF-8"));
+                    System.out.println("PROCESS: Filename received - " + new String(fileName, StandardCharsets.UTF_8));
                     out = new BufferedOutputStream(new FileOutputStream(clientPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
                     currentState = State.FILE_LENGTH;
                 }

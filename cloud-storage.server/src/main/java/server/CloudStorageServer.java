@@ -1,3 +1,5 @@
+package server;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -8,8 +10,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class CloudStorageServer {
     private final int PORT = 8189;
+    private static DatabaseService dbs;
 
     public void start() {
+        dbs = new DatabaseService();
+        dbs.checkDatabaseStatus();
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {

@@ -1,3 +1,5 @@
+package client;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -30,7 +32,7 @@ public class AuthController implements Initializable {
     private Stage createCloudStorageWindow(){
         Stage stage = null;
         try{
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("cloud.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/cloud.fxml"));
             Parent root = fxmlLoader.load();
             stage = new Stage();
             stage.setTitle("Cloud storage");
@@ -46,6 +48,11 @@ public class AuthController implements Initializable {
         return stage;
     }
 
+    public void tryАuthentication(){
+        CommandSender.sendLoginPassword(loginField.getText().trim(),Integer.parseInt(passwordField.getText().trim()), Network.getInstance().getCurrentChannel());
+    }
+
+    //Перенести в InClientHandler
     public void showCloudStorageWindow(){
             cloudStorageStage.show();
     }

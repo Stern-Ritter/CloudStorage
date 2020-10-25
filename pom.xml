@@ -9,9 +9,9 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>com.geekbrains.cloud-storage.server</module>
-        <module>com.geekbrains.cloud-storage.client</module>
-        <module>com.geekbrains.cloud-storage.common</module>
+        <module>cloud-storage.server</module>
+        <module>cloud-storage.client</module>
+        <module>cloud-storage.common</module>
     </modules>
 
     <properties>
@@ -23,6 +23,11 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.42.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
         </dependency>
     </dependencies>
 

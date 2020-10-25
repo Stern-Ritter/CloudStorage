@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<HBox fx:controller="CloudStorageController" xmlns:fx="http://javafx.com/fxml" alignment="center" spacing="10">
+<HBox fx:controller="client.CloudStorageController" xmlns:fx="http://javafx.com/fxml" alignment="center" spacing="10">
 <VBox>
     <VBox VBox.vgrow="ALWAYS">
         <Label text="Файлы на компьютере пользователя:"/>
@@ -22,7 +22,7 @@
             <ListView fx:id="serverFileList" minWidth="180" onMouseClicked="#clickServerFileListItem"/>
         </VBox>
         <HBox alignment="CENTER" spacing="5">
-            <Button text = "Скачать с сервера" minWidth="60"/>
+            <Button text = "Скачать с сервера" onAction="#sendFileRequest" minWidth="60"/>
             <Button text = "Удалить" onAction="#sendDeleteCommand" minWidth="60"/>
             <Button text = "Обновить" onAction="#sendFileListRequest" minWidth="60"/>
         </HBox>

@@ -1,6 +1,10 @@
+package client;
+
+import common.FileHandler;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
@@ -33,7 +37,7 @@ public class CloudStorageController {
     }
 
     public void sendFileRequest(){
-        CommandSender.sendFileRequest(selectedServerFilePath,Network.getInstance().getCurrentChannel());
+        CommandSender.sendFileRequest(selectedServerFilePath, Network.getInstance().getCurrentChannel());
     }
 
     public void clickFileListItem(){
