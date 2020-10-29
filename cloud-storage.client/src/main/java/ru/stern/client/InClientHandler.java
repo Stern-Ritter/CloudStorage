@@ -1,6 +1,6 @@
-package client;
+package ru.stern.client;
 
-import common.FileHandler;
+import ru.stern.common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -14,14 +14,11 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class InClientHandler extends ChannelInboundHandlerAdapter {
-    public enum State {
-        COM, NAME_LENGTH, NAME, FILE_LIST_LENGTH, FILE_LENGTH, FILE, FILE_LIST
-    }
 
-    private State currentState = State.COM;
+    private TransferState currentState = TransferState.COM;
     static CloudStorageController cloudStorageController;
     static  AuthController authController;
-    static Path clientPath = Paths.get("C:","CloudStorage");
+    private static Path clientPath = Paths.get("C:","CloudStorage");
     private int nameLength;
     private long fileLength;
     private int fileListLength;
@@ -33,39 +30,35 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
         ByteBuf buf = ((ByteBuf) msg);
         while (buf.readableBytes() > 0) {
 
-            if (currentState == State.COM) {
+            if (currentState == TransferState.COM) {
                 byte readed = buf.readByte();
                 if (readed == (byte) 9) {
-                    Platform.runLater(() -> {
-                        authController.showCloudStorageWindow();
-                    });
+                    authController.showCloudStorageWindow();
                     System.out.println("PROCESS: Received from server successfully authentication..");
                 } else  if (readed == (byte) 10) {
-                    Platform.runLater(() -> {
-                        authController.failedAuthentication();
-                    });
+                    authController.failedAuthentication();
                     System.out.println("PROCESS: Received from server failed authentication.");
                 } else if (readed == (byte) 14) {
-                    currentState = State.NAME_LENGTH;
+                    currentState = TransferState.NAME_LENGTH;
                     receivedFileLength = 0L;
                     System.out.println("PROCESS: Start file receiving.");
                 } else if (readed == (byte) 16) {
-                    currentState = State.FILE_LIST_LENGTH;
+                    currentState = TransferState.FILE_LIST_LENGTH;
                     System.out.println("PROCESS: Start file list receiving.");
                 } else {
                     System.out.println("ERROR: Invalid first byte.");
                 }
             }
 
-            if (currentState == State.FILE_LIST_LENGTH) {
+            if (currentState == TransferState.FILE_LIST_LENGTH) {
                 if (buf.readableBytes() >= 4) {
                     fileListLength = buf.readInt();
                     System.out.println("PROCESS: File list length received - " + fileLength);
-                    currentState = State.FILE_LIST;
+                    currentState = TransferState.FILE_LIST;
                 }
             }
 
-            if (currentState == State.FILE_LIST) {
+            if (currentState == TransferState.FILE_LIST) {
                 if (buf.readableBytes() >= fileListLength) {
                     byte[] arr = new byte[fileListLength];
                     buf.readBytes(arr);
@@ -74,43 +67,43 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                     Platform.runLater(() -> {
                         cloudStorageController.updateServerFileList(list);
                     });
-                    currentState = State.COM;
+                    currentState = TransferState.COM;
                     System.out.println("PROCESS: File list received.");
                 }
             }
 
-            if (currentState == State.NAME_LENGTH) {
+            if (currentState == TransferState.NAME_LENGTH) {
                 if (buf.readableBytes() >= 4) {
                     nameLength = buf.readInt();
                     System.out.println("PROCESS: Get filename length.");
-                    currentState = State.NAME;
+                    currentState = TransferState.NAME;
                 }
             }
 
-            if (currentState == State.NAME) {
+            if (currentState == TransferState.NAME) {
                 if (buf.readableBytes() >= nameLength) {
                     byte[] fileName = new byte[nameLength];
                     buf.readBytes(fileName);
                     System.out.println("PROCESS: Filename received - " + new String(fileName, StandardCharsets.UTF_8));
                     out = new BufferedOutputStream(new FileOutputStream(clientPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
-                    currentState = State.FILE_LENGTH;
+                    currentState = TransferState.FILE_LENGTH;
                 }
             }
 
-            if (currentState == State.FILE_LENGTH) {
+            if (currentState == TransferState.FILE_LENGTH) {
                 if (buf.readableBytes() >= 8) {
                     fileLength = buf.readLong();
                     System.out.println("PROCESS: File length received - " + fileLength);
-                    currentState = State.FILE;
+                    currentState = TransferState.FILE;
                 }
             }
 
-            if (currentState == State.FILE) {
+            if (currentState == TransferState.FILE) {
                 while (buf.readableBytes() > 0) {
                     out.write(buf.readByte());
                     receivedFileLength++;
                     if (fileLength == receivedFileLength) {
-                        currentState = State.COM;
+                        currentState = TransferState.COM;
                         System.out.println("PROCESS: File received.");
                         Platform.runLater(() -> {
                             cloudStorageController.updateFileList();

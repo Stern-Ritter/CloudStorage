@@ -1,4 +1,4 @@
-package common;
+package ru.stern.common;
 
 import java.io.IOException;
 import java.nio.file.Files;

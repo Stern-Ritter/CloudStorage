@@ -1,6 +1,6 @@
-package client;
+package ru.stern.client;
 
-import common.FileHandler;
+import ru.stern.common.FileHandler;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -16,9 +16,9 @@ public class CloudStorageController {
     public ListView<String> serverFileList;
 
     AuthController controller;
-    Path clientPath = Paths.get("C:","CloudStorage");
-    Path selectedFilePath;
-    String selectedServerFilePath;
+    private Path clientPath = Paths.get("C:","CloudStorage");
+    private Path selectedFilePath;
+    private String selectedServerFilePath;
 
     public void sendFile(){
         try {

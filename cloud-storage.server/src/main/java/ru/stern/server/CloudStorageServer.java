@@ -1,4 +1,4 @@
-package server;
+package ru.stern.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -10,7 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class CloudStorageServer {
     private final int PORT = 8189;
-    public static DatabaseService dbs;
+    private DatabaseService dbs;
 
     public void start() {
         dbs = new DatabaseService();
@@ -24,7 +24,7 @@ public class CloudStorageServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new OutServerHandler(),new InServerHandler());
+                            socketChannel.pipeline().addLast(new OutServerHandler(),new AuthenticationHandler(dbs));
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(PORT).sync();

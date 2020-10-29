@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<HBox fx:controller="client.CloudStorageController" xmlns:fx="http://javafx.com/fxml" alignment="center" spacing="10">
+<HBox fx:controller="ru.stern.client.CloudStorageController" xmlns:fx="http://javafx.com/fxml" alignment="center" spacing="10">
 <VBox>
     <VBox VBox.vgrow="ALWAYS">
         <Label text="Файлы на компьютере пользователя:"/>

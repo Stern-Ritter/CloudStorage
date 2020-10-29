@@ -1,4 +1,4 @@
-package client;
+package ru.stern.client;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CommandSender {
+
     public static void sendFile(Path path, Channel channel) throws IOException {
         FileRegion region = new DefaultFileRegion(path.toFile(), 0, Files.size(path));
         ByteBuf buf = null;

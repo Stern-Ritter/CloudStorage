@@ -1,5 +1,6 @@
-package client;
+package ru.stern.client;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -22,8 +23,8 @@ public class AuthController implements Initializable {
     @FXML
     public PasswordField passwordField;
 
-    Stage cloudStorageStage;
-    CloudStorageController cloudStorageController;
+    private Stage cloudStorageStage;
+    private CloudStorageController cloudStorageController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -55,16 +56,20 @@ public class AuthController implements Initializable {
     }
 
     public void showCloudStorageWindow(){
+        Platform.runLater(() -> {
             cloudStorageStage.show();
             cloudStorageController.updateFileList();
             cloudStorageController.sendFileListRequest();
+        });
     }
 
     public void failedAuthentication(){
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Authentication");
-        alert.setHeaderText(null);
-        alert.setContentText("Invalid username or password.");
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Authentication");
+            alert.setHeaderText(null);
+            alert.setContentText("Invalid username or password.");
+            alert.showAndWait();
+        });
     }
 }

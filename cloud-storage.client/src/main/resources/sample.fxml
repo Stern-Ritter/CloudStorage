@@ -3,7 +3,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.layout.VBox?>
-<VBox fx:controller="client.AuthController"
+<VBox fx:controller="ru.stern.client.AuthController"
       xmlns:fx="http://javafx.com/fxml" alignment="center" spacing="10">
     <HBox alignment="CENTER">
         <TextField fx:id="loginField" minWidth="120" promptText="login"/>

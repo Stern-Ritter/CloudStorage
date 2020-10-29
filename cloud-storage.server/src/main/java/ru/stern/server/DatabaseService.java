@@ -1,4 +1,4 @@
-package server;
+package ru.stern.server;
 
 import java.sql.*;
 
