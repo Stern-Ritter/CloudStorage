@@ -52,7 +52,13 @@ public class AuthController implements Initializable {
     }
 
     public void tryАuthentication(){
-        CommandSender.sendLoginPassword(loginField.getText().trim(),Integer.parseInt(passwordField.getText().trim()), Network.getInstance().getCurrentChannel());
+        String login = loginField.getText().trim();
+        String password = passwordField.getText().trim();
+        if (login.length() != 0 && password.length() != 0) {
+            CommandSender.sendLoginPassword(login, hashCode(password), Network.getInstance().getCurrentChannel());
+        } else {
+            failedAuthentication("Authentication", "Fill in the username and password fields.");
+        }
     }
 
     public void showCloudStorageWindow(){
@@ -63,13 +69,18 @@ public class AuthController implements Initializable {
         });
     }
 
-    public void failedAuthentication(){
+    public void failedAuthentication(String title, String msg){
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Authentication");
+            alert.setTitle(title);
             alert.setHeaderText(null);
-            alert.setContentText("Invalid username or password.");
+            alert.setContentText(msg);
             alert.showAndWait();
         });
     }
+
+    private int hashCode (String str){
+        return str.hashCode() + 32;
+    }
+
 }

@@ -1,5 +1,6 @@
 package ru.stern.client;
 
+import ru.stern.common.Сommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -15,7 +16,7 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte) 15);
+        buf.writeByte(Сommands.FILE_TRANSFER);
         channel.writeAndFlush(buf);
         //Записываем в поток длинну имени файла
         byte[] filenameBytes = path.getFileName().toString().getBytes(StandardCharsets.UTF_8);
@@ -38,7 +39,7 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte)17);
+        buf.writeByte(Сommands.FILE_DELETE);
         channel.writeAndFlush(buf);
         //Записываем в поток длинну имени файла
         byte[] fileNameBytes = filename.getBytes(StandardCharsets.UTF_8);
@@ -55,14 +56,14 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte)16);
+        buf.writeByte(Сommands.FILE_LIST_REQUEST);
         channel.writeAndFlush(buf);
     }
 
     public static void sendFileRequest(String path, Channel channel){
         ByteBuf buf = null;
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte) 14);
+        buf.writeByte(Сommands.FILE_REQUEST);
         channel.writeAndFlush(buf);
         byte[] filenameBytes = path.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
@@ -76,7 +77,7 @@ public class CommandSender {
     public static void sendLoginPassword(String login, int hashPassword, Channel channel){
         ByteBuf buf = null;
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte((byte)9);
+        buf.writeByte(Сommands.AUTH_REQUEST);
         channel.writeAndFlush(buf);
         byte[] loginBytes = login.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);

@@ -42,18 +42,18 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.COM) {
                 byte readed = buf.readByte();
-                if(readed == Comm){
+                if(readed == Сommands.FILE_REQUEST){
                     currentState = TransferState.NAME_LENGTH_TO_SEND;
                     Server.logger.info("PROCESS: Start file sending.");
-                }else if (readed == (byte) 15) {
+                }else if (readed == Сommands.FILE_TRANSFER) {
                     currentState = TransferState.NAME_LENGTH;
                     receivedFileLength = 0L;
                     Server.logger.info("PROCESS: Start file receiving.");
-                } else if (readed == (byte) 16) {
+                } else if (readed == Сommands.FILE_LIST_REQUEST) {
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
-                    sendBuf.writeByte((byte) 16);
+                    sendBuf.writeByte(Сommands.FILE_LIST_REQUEST);
                     ctx.writeAndFlush(sendBuf);
-                } else if (readed == (byte) 17) {
+                } else if (readed == Сommands.FILE_DELETE) {
                     currentState = TransferState.NAME_LENGTH_TO_DELETE;
                     Server.logger.info("PROCESS: Start file deleting.");
                 } else {
@@ -136,6 +136,15 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (currentState == TransferState.FILE) {
+                if(receivedFileLength == 0){
+                    currentState = TransferState.COM;
+                    Server.logger.info("PROCESS: File received.");
+                    sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
+                    sendBuf.writeByte((byte) 16);
+                    ctx.writeAndFlush(sendBuf);
+                    out.close();
+                    break;
+                }
                 while (buf.readableBytes() > 0) {
                     out.write(buf.readByte());
                     receivedFileLength++;

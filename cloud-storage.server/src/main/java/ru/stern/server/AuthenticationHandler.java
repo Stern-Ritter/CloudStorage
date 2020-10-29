@@ -61,11 +61,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
                         ctx.pipeline().addLast(new InServerHandler(login));
                         ctx.pipeline().get(OutServerHandler.class).setUserPath(login);
                         ctx.pipeline().remove(this);
-                        sendBuf.writeByte((byte) 9);
+                        sendBuf.writeByte(Сommands.AUTH_SUCCESS);
                         Server.logger.info("PROCESS: Successfully authentication - {}.", login);
                     } else {
                         Server.logger.info("PROCESS: Failed authentication.");
-                        sendBuf.writeByte((byte) 10);
+                        sendBuf.writeByte(Сommands.AUTH_FAILED);
                     }
                     ctx.writeAndFlush(sendBuf);
                     currentState = AuthState.COM;

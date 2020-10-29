@@ -58,8 +58,10 @@ public class CloudStorageController {
     }
 
     public void updateFileList() {
-        fileList.getItems().clear();
-        fileList.getItems().addAll(FileHandler.getFileList(clientPath));
+        Platform.runLater(() -> {
+            fileList.getItems().clear();
+            fileList.getItems().addAll(FileHandler.getFileList(clientPath));
+        });
     }
 
     public void updateServerFileList(List<String> list) {

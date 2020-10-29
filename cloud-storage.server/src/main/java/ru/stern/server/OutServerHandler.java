@@ -1,5 +1,6 @@
 package ru.stern.server;
 
+import ru.stern.common.Сommands;
 import ru.stern.common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -17,7 +18,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf rec = ((ByteBuf) msg);
         byte readed = rec.readByte();
-        if(readed == (byte)14){
+        if(readed == Сommands.FILE_REQUEST){
             byte[] arr = new byte[rec.readableBytes()];
             rec.readBytes(arr);
             String fileName = new String(arr);
@@ -26,7 +27,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             ByteBuf buf = null;
             //Записываем в поток сигнальный байт
             buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte((byte) 14);
+            buf.writeByte(Сommands.FILE_REQUEST);
             ctx.writeAndFlush(buf);
             //Записываем в поток длинну имени файла
             byte[] filenameBytes = fileName.getBytes(StandardCharsets.UTF_8);
@@ -44,26 +45,26 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             //Записываем в поток файл zero-copy file transfer
             ctx.writeAndFlush(region);
         }
-        if(readed == (byte)16) {
+        if(readed == Сommands.FILE_LIST_REQUEST) {
             Server.logger.info("PROCESS: Start file list sending.");
             String result = FileHandler.fileListToString(FileHandler.getFileList(userPath));
             byte[] send = result.getBytes();
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(send.length + 5);
-            buf.writeByte(16);
+            buf.writeByte(Сommands.FILE_LIST_REQUEST);
             buf.writeInt(send.length);
             buf.writeBytes(send);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: File list sending success.");
         }
-        if(readed == (byte)9) {
+        if(readed == Сommands.AUTH_SUCCESS) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte((byte) 9);
+            buf.writeByte(Сommands.AUTH_SUCCESS);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: successfully authentication.");
         }
-        if(readed == (byte)10) {
+        if(readed == Сommands.AUTH_FAILED) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte((byte) 10);
+            buf.writeByte(Сommands.AUTH_FAILED);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: failed authentication.");
         }

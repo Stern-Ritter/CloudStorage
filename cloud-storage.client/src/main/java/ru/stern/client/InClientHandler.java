@@ -1,5 +1,6 @@
 package ru.stern.client;
 
+import ru.stern.common.Сommands;
 import ru.stern.common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,17 +33,17 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.COM) {
                 byte readed = buf.readByte();
-                if (readed == (byte) 9) {
+                if (readed == Сommands.AUTH_SUCCESS) {
                     authController.showCloudStorageWindow();
                     System.out.println("PROCESS: Received from server successfully authentication..");
-                } else  if (readed == (byte) 10) {
-                    authController.failedAuthentication();
+                } else  if (readed == Сommands.AUTH_FAILED) {
+                    authController.failedAuthentication("Authentication", "Invalid username or password.");
                     System.out.println("PROCESS: Received from server failed authentication.");
-                } else if (readed == (byte) 14) {
+                } else if (readed == Сommands.FILE_REQUEST) {
                     currentState = TransferState.NAME_LENGTH;
                     receivedFileLength = 0L;
                     System.out.println("PROCESS: Start file receiving.");
-                } else if (readed == (byte) 16) {
+                } else if (readed == Сommands.FILE_LIST_REQUEST) {
                     currentState = TransferState.FILE_LIST_LENGTH;
                     System.out.println("PROCESS: Start file list receiving.");
                 } else {
@@ -64,9 +65,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                     buf.readBytes(arr);
                     String result = new String(arr);
                     List<String> list = FileHandler.stringToFileList(result);
-                    Platform.runLater(() -> {
-                        cloudStorageController.updateServerFileList(list);
-                    });
+                    cloudStorageController.updateServerFileList(list);
                     currentState = TransferState.COM;
                     System.out.println("PROCESS: File list received.");
                 }
@@ -99,15 +98,20 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (currentState == TransferState.FILE) {
+                if(receivedFileLength == 0) {
+                    currentState = TransferState.COM;
+                    System.out.println("PROCESS: File received.");
+                    cloudStorageController.updateFileList();
+                    out.close();
+                    break;
+                }
                 while (buf.readableBytes() > 0) {
                     out.write(buf.readByte());
                     receivedFileLength++;
                     if (fileLength == receivedFileLength) {
                         currentState = TransferState.COM;
                         System.out.println("PROCESS: File received.");
-                        Platform.runLater(() -> {
-                            cloudStorageController.updateFileList();
-                        });
+                        cloudStorageController.updateFileList();
                         out.close();
                         break;
                     }
