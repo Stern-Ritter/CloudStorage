@@ -20,6 +20,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
 
     private State currentState = State.COM;
     static CloudStorageController cloudStorageController;
+    static  AuthController authController;
     static Path clientPath = Paths.get("C:","CloudStorage");
     private int nameLength;
     private long fileLength;
@@ -34,7 +35,17 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == State.COM) {
                 byte readed = buf.readByte();
-                if (readed == (byte) 14) {
+                if (readed == (byte) 9) {
+                    Platform.runLater(() -> {
+                        authController.showCloudStorageWindow();
+                    });
+                    System.out.println("PROCESS: Received from server successfully authentication..");
+                } else  if (readed == (byte) 10) {
+                    Platform.runLater(() -> {
+                        authController.failedAuthentication();
+                    });
+                    System.out.println("PROCESS: Received from server failed authentication.");
+                } else if (readed == (byte) 14) {
                     currentState = State.NAME_LENGTH;
                     receivedFileLength = 0L;
                     System.out.println("PROCESS: Start file receiving.");

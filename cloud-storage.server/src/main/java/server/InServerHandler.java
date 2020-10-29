@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 
 public class InServerHandler extends ChannelInboundHandlerAdapter {
-    public enum State {
-        COM, NAME_LENGTH, NAME_LENGTH_TO_DELETE, NAME_LENGTH_TO_SEND, NAME, NAME_TO_DELETE, NAME_TO_SEND, FILE_LENGTH, FILE
+    private enum State {
+        COM, AUTH_LOGIN_LENGTH, AUTH_LOGIN, AUTH_PASS, NAME_LENGTH, NAME_LENGTH_TO_DELETE, NAME_LENGTH_TO_SEND, NAME, NAME_TO_DELETE, NAME_TO_SEND, FILE_LENGTH, FILE
     }
     public enum Command {
         SEND_FILE((byte)15), SEND_FILE_LIST ((byte)16), DELETE_FILE((byte)17);
@@ -31,6 +31,10 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
     private long fileLength;
     private long receivedFileLength;
     private BufferedOutputStream out;
+
+    private int loginLength;
+    private String login;
+    private int hashPass;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -50,11 +54,13 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == State.COM) {
                 byte readed = buf.readByte();
-                if(readed == (byte)14){
+                if(readed == (byte)9){
+                    currentState = State.AUTH_LOGIN_LENGTH;
+                    Server.logger.info("PROCESS: Start authentication.");
+                } else if (readed == (byte)14){
                     currentState = State.NAME_LENGTH_TO_SEND;
                     Server.logger.info("PROCESS: Start file sending.");
-                }
-                if (readed == (byte) 15) {
+                }else if (readed == (byte) 15) {
                     currentState = State.NAME_LENGTH;
                     receivedFileLength = 0L;
                     Server.logger.info("PROCESS: Start file receiving.");
@@ -67,6 +73,14 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     Server.logger.info("PROCESS: Start file deleting.");
                 } else {
                     Server.logger.error("Invalid first byte.");
+                }
+            }
+
+            if (currentState == State.AUTH_LOGIN_LENGTH) {
+                if (buf.readableBytes() >= 4) {
+                    loginLength = buf.readInt();
+                    Server.logger.info("PROCESS: Get login length.");
+                    currentState = State.AUTH_LOGIN;
                 }
             }
 
@@ -91,6 +105,35 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     nameLength = buf.readInt();
                     Server.logger.info("PROCESS: Get filename to send length.");
                     currentState = State.NAME_TO_SEND;
+                }
+            }
+
+            if (currentState == State.AUTH_LOGIN) {
+                if (buf.readableBytes() >= loginLength) {
+                    byte[] fileName = new byte[loginLength];
+                    buf.readBytes(fileName);
+                    login = new String(fileName, StandardCharsets.UTF_8);
+                    Server.logger.info("PROCESS: Login received - {} .", login);
+                    currentState = State.AUTH_PASS;
+                }
+            }
+
+            if (currentState == State.AUTH_PASS) {
+                if (buf.readableBytes() >= 4) {
+                    hashPass = buf.readInt();
+                    Server.logger.info("PROCESS: Password received - {} .", hashPass);
+                    sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
+                    if(CloudStorageServer.dbs.checkPassword(login,hashPass)){
+                        changeUserDirectory(login);
+                        Server.logger.info("PROCESS: Successfully authentication.", hashPass);
+                        Server.logger.info("PROCESS: User directory: {}.", userPath);
+                        sendBuf.writeByte((byte) 9);
+                    } else {
+                        Server.logger.info("PROCESS: Failed authentication.", hashPass);
+                        sendBuf.writeByte((byte) 10);
+                    }
+                     ctx.writeAndFlush(sendBuf);
+                    currentState = State.COM;
                 }
             }
 
@@ -171,4 +214,16 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
         cause.printStackTrace();
         ctx.close();
     }
+
+    public void changeUserDirectory(String path){
+        userPath = Paths.get("C:", "CloudStorageServer", path);
+        if(!Files.exists(userPath)){
+            try {
+                Files.createDirectories(userPath);
+            } catch (IOException e) {
+                Server.logger.error("Change user directory for {} failed.", path);
+            }
+        }
+    }
+
 }

@@ -53,6 +53,18 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: File list sending success.");
         }
+        if(readed == (byte)9) {
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+            buf.writeByte((byte) 9);
+            ctx.writeAndFlush(buf);
+            Server.logger.info("PROCESS: Send client: successfully authentication.");
+        }
+        if(readed == (byte)10) {
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+            buf.writeByte((byte) 10);
+            ctx.writeAndFlush(buf);
+            Server.logger.info("PROCESS: Send client: failed authentication.");
+        }
     }
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Modality;
@@ -42,6 +43,7 @@ public class AuthController implements Initializable {
             cloudStorageController = fxmlLoader.getController();
             cloudStorageController.controller = this;
             InClientHandler.cloudStorageController = cloudStorageController;
+            InClientHandler.authController = this;
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -52,8 +54,17 @@ public class AuthController implements Initializable {
         CommandSender.sendLoginPassword(loginField.getText().trim(),Integer.parseInt(passwordField.getText().trim()), Network.getInstance().getCurrentChannel());
     }
 
-    //Перенести в InClientHandler
     public void showCloudStorageWindow(){
             cloudStorageStage.show();
+            cloudStorageController.updateFileList();
+            cloudStorageController.sendFileListRequest();
+    }
+
+    public void failedAuthentication(){
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Authentication");
+        alert.setHeaderText(null);
+        alert.setContentText("Invalid username or password.");
+        alert.showAndWait();
     }
 }

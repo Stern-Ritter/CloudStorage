@@ -10,7 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class CloudStorageServer {
     private final int PORT = 8189;
-    private static DatabaseService dbs;
+    public static DatabaseService dbs;
 
     public void start() {
         dbs = new DatabaseService();
