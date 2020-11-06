@@ -1,6 +1,6 @@
 package ru.stern.client;
 
-import ru.stern.common.Сommands;
+import ru.stern.common.Commands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -16,7 +16,7 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.FILE_TRANSFER);
+        buf.writeByte(Commands.FILE_TRANSFER);
         channel.writeAndFlush(buf);
         //Записываем в поток длинну имени файла
         byte[] filenameBytes = path.getFileName().toString().getBytes(StandardCharsets.UTF_8);
@@ -39,7 +39,7 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.FILE_DELETE);
+        buf.writeByte(Commands.FILE_DELETE);
         channel.writeAndFlush(buf);
         //Записываем в поток длинну имени файла
         byte[] fileNameBytes = filename.getBytes(StandardCharsets.UTF_8);
@@ -56,19 +56,22 @@ public class CommandSender {
         ByteBuf buf = null;
         //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.FILE_LIST_REQUEST);
+        buf.writeByte(Commands.FILE_LIST_REQUEST);
         channel.writeAndFlush(buf);
     }
 
     public static void sendFileRequest(String path, Channel channel){
         ByteBuf buf = null;
+        //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.FILE_REQUEST);
+        buf.writeByte(Commands.FILE_REQUEST);
         channel.writeAndFlush(buf);
+        //Записываем в поток длинну имени файла
         byte[] filenameBytes = path.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
         buf.writeInt(filenameBytes.length);
         channel.writeAndFlush(buf);
+        //Записываем в поток имя файла
         buf = ByteBufAllocator.DEFAULT.directBuffer(filenameBytes.length);
         buf.writeBytes(filenameBytes);
         channel.writeAndFlush(buf);
@@ -76,20 +79,25 @@ public class CommandSender {
 
     public static void sendLoginPassword(byte command, String login, String hashPassword, Channel channel){
         ByteBuf buf = null;
+        //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
         buf.writeByte(command);
         channel.writeAndFlush(buf);
+        //Записываем в поток длинну логина
         byte[] loginBytes = login.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
         buf.writeInt(loginBytes.length);
         channel.writeAndFlush(buf);
+        //Записываем в поток логин
         buf = ByteBufAllocator.DEFAULT.directBuffer(loginBytes.length);
         buf.writeBytes(loginBytes);
         channel.writeAndFlush(buf);
+        //Записываем в поток длинну хэшированного пароля
         byte[] hashPasswordBytes = hashPassword.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
         buf.writeInt(hashPasswordBytes.length);
         channel.writeAndFlush(buf);
+        //Записываем в поток пароль
         buf= ByteBufAllocator.DEFAULT.directBuffer(hashPasswordBytes.length);
         buf.writeBytes(hashPasswordBytes);
         channel.writeAndFlush(buf);
@@ -97,8 +105,9 @@ public class CommandSender {
 
     public static void sendDisconnectRequest(Channel channel){
         ByteBuf buf = null;
+        //Записываем в поток сигнальный байт
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.DISCONNECT_REQUEST);
+        buf.writeByte(Commands.DISCONNECT_REQUEST);
         channel.writeAndFlush(buf);
     }
 }

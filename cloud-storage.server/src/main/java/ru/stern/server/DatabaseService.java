@@ -6,7 +6,8 @@ public class DatabaseService {
     private static final String URL = "jdbc:h2:tcp://localhost/~/test";
     private static final String GET_HASH_PASSWORD = "SELECT login, password FROM users WHERE login = ?";
     private static final String INSERT_NEW_USER = "INSERT INTO users VALUES (NULL, ?, ?)";
-    public void checkDatabaseStatus(){
+
+    public void checkDatabaseDriverStatus(){
         try{
             Class.forName("org.h2.Driver");
         } catch (ClassNotFoundException ex){
@@ -20,16 +21,12 @@ public class DatabaseService {
         return connection;
     }
 
-    public boolean checkUser(String login){
+    public boolean checkUserExistence(String login){
         try (Connection connection = getConnection();
              PreparedStatement getUser = connection.prepareStatement(GET_HASH_PASSWORD)){
             getUser.setString(1,login);
             try(ResultSet rs = getUser.executeQuery()){
-                if(rs.next()){
-                    return true;
-                } else {
-                    return false;
-                }
+                return rs.next();
             }
         } catch (SQLException ex) {
             Server.logger.info("PROCESS: Failed checking the user's {} existence.", login);
@@ -44,11 +41,7 @@ public class DatabaseService {
             try(ResultSet rs = getHashPassword.executeQuery()){
                 if(rs.next()){
                     String dbHashPassword = rs.getString("password");
-                    if (dbHashPassword.equals(hashPassword)){
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return dbHashPassword.equals(hashPassword);
                 }
                 return false;
             }

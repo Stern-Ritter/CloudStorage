@@ -14,7 +14,7 @@ public class CloudStorageServer {
 
     public void start() {
         dbs = new DatabaseService();
-        dbs.checkDatabaseStatus();
+        dbs.checkDatabaseDriverStatus();
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {

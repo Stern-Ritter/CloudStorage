@@ -54,7 +54,7 @@ public class Network {
     }
 
     public void stop (){
-        System.out.println("PROCESS: Connection close.");
         currentChannel.close();
+        System.out.println("PROCESS: Connection close.");
     }
 }

@@ -1,7 +1,7 @@
 package ru.stern.server;
 
-import ru.stern.common.Сommands;
-import ru.stern.common.FileHandler;
+import ru.stern.common.Commands;
+import ru.stern.common.FileService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
@@ -18,7 +18,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf rec = ((ByteBuf) msg);
         byte readed = rec.readByte();
-        if(readed == Сommands.FILE_REQUEST){
+        if(readed == Commands.FILE_REQUEST){
             byte[] arr = new byte[rec.readableBytes()];
             rec.readBytes(arr);
             String fileName = new String(arr);
@@ -27,7 +27,7 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             ByteBuf buf = null;
             //Записываем в поток сигнальный байт
             buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte(Сommands.FILE_REQUEST);
+            buf.writeByte(Commands.FILE_REQUEST);
             ctx.writeAndFlush(buf);
             //Записываем в поток длинну имени файла
             byte[] filenameBytes = fileName.getBytes(StandardCharsets.UTF_8);
@@ -45,38 +45,38 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             //Записываем в поток файл zero-copy file transfer
             ctx.writeAndFlush(region);
         }
-        if(readed == Сommands.FILE_LIST_REQUEST) {
+        if(readed == Commands.FILE_LIST_REQUEST) {
             Server.logger.info("PROCESS: Start file list sending.");
-            String result = FileHandler.fileListToString(FileHandler.getFileList(userPath));
+            String result = FileService.fileListToString(FileService.getFileList(userPath));
             byte[] send = result.getBytes();
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(send.length + 5);
-            buf.writeByte(Сommands.FILE_LIST_REQUEST);
+            buf.writeByte(Commands.FILE_LIST_REQUEST);
             buf.writeInt(send.length);
             buf.writeBytes(send);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: File list sending success.");
         }
-        if(readed == Сommands.AUTH_SUCCESS) {
+        if(readed == Commands.AUTH_SUCCESS) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte(Сommands.AUTH_SUCCESS);
+            buf.writeByte(Commands.AUTH_SUCCESS);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: successfully authentication.");
         }
-        if(readed == Сommands.AUTH_FAILED) {
+        if(readed == Commands.AUTH_FAILED) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte(Сommands.AUTH_FAILED);
+            buf.writeByte(Commands.AUTH_FAILED);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: failed authentication.");
         }
-        if(readed == Сommands.REG_SUCCESS) {
+        if(readed == Commands.REG_SUCCESS) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte(Сommands.REG_SUCCESS);
+            buf.writeByte(Commands.REG_SUCCESS);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: successfully registration.");
         }
-        if(readed == Сommands.REG_FAILED) {
+        if(readed == Commands.REG_FAILED) {
             ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-            buf.writeByte(Сommands.REG_FAILED);
+            buf.writeByte(Commands.REG_FAILED);
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: failed registration.");
         }

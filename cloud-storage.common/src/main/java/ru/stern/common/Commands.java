@@ -1,6 +1,6 @@
 package ru.stern.common;
 
-public class Сommands {
+public class Commands {
     public static final byte REG_REQUEST = 6;           //User registration request
     public static final byte REG_SUCCESS = 7;           //User registration was successful
     public static final byte REG_FAILED = 8;            //User registration failed

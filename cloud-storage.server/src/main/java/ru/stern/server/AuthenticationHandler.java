@@ -1,10 +1,10 @@
 package ru.stern.server;
 
-import ru.stern.common.Сommands;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import ru.stern.common.Commands;
 
 import java.nio.charset.StandardCharsets;
 
@@ -27,13 +27,13 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
         while (buf.readableBytes() > 0) {
             if (currentState == AuthState.COMMAND) {
                 byte readed = buf.readByte();
-                if(readed == Сommands.AUTH_REQUEST) {
+                if(readed == Commands.AUTH_REQUEST) {
                     currentState = AuthState.AUTH_LOGIN_LENGTH;
                     Server.logger.info("PROCESS: Start authentication.");
-                } else if(readed == Сommands.REG_REQUEST){
+                } else if(readed == Commands.REG_REQUEST){
                     currentState = AuthState.REG_LOGIN_LENGTH;
                     Server.logger.info("PROCESS: Start registration.");
-                } else if (readed == Сommands.DISCONNECT_REQUEST){
+                } else if (readed == Commands.DISCONNECT_REQUEST){
                     Server.logger.info("PROCESS: Start disconnect.");
                     ctx.close();
                 } else {
@@ -104,11 +104,11 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
                         ctx.pipeline().addLast(new InServerHandler(login));
                         ctx.pipeline().get(OutServerHandler.class).setUserPath(login);
                         ctx.pipeline().remove(this);
-                        sendBuf.writeByte(Сommands.AUTH_SUCCESS);
+                        sendBuf.writeByte(Commands.AUTH_SUCCESS);
                         Server.logger.info("PROCESS: Successfully authentication - {}.", login);
                     } else {
                         Server.logger.info("PROCESS: Failed authentication.");
-                        sendBuf.writeByte(Сommands.AUTH_FAILED);
+                        sendBuf.writeByte(Commands.AUTH_FAILED);
                     }
                     ctx.writeAndFlush(sendBuf);
                     currentState = AuthState.COMMAND;
@@ -122,15 +122,15 @@ public class AuthenticationHandler extends ChannelInboundHandlerAdapter {
                     String hashPassword = new String(hashPasswordBytes, StandardCharsets.UTF_8);
                     Server.logger.info("PROCESS: Password received - {} .", hashPassword);
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
-                    if(dbs.checkUser(login)){
-                        sendBuf.writeByte(Сommands.REG_FAILED);
+                    if(dbs.checkUserExistence(login)){
+                        sendBuf.writeByte(Commands.REG_FAILED);
                         Server.logger.info("PROCESS: The user {} is already registered.", login);
                     } else {
                         if(dbs.insertNewUser(login, hashPassword)) {
-                            sendBuf.writeByte(Сommands.REG_SUCCESS);
+                            sendBuf.writeByte(Commands.REG_SUCCESS);
                             Server.logger.info("PROCESS: Successfully registration - {}.", login);
                         } else {
-                            sendBuf.writeByte(Сommands.REG_FAILED);
+                            sendBuf.writeByte(Commands.REG_FAILED);
                         }
                     }
                     ctx.writeAndFlush(sendBuf);

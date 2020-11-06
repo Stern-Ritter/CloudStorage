@@ -1,7 +1,7 @@
 package ru.stern.server;
 
-import ru.stern.common.Сommands;
-import ru.stern.common.FileHandler;
+import ru.stern.common.Commands;
+import ru.stern.common.FileService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -42,21 +42,21 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.COMMAND) {
                 byte readed = buf.readByte();
-                if(readed == Сommands.FILE_REQUEST){
+                if(readed == Commands.FILE_REQUEST){
                     currentState = TransferState.NAME_LENGTH_TO_SEND;
                     Server.logger.info("PROCESS: Start file sending.");
-                }else if (readed == Сommands.FILE_TRANSFER) {
+                }else if (readed == Commands.FILE_TRANSFER) {
                     currentState = TransferState.NAME_LENGTH;
                     receivedFileLength = 0L;
                     Server.logger.info("PROCESS: Start file receiving.");
-                } else if (readed == Сommands.FILE_LIST_REQUEST) {
+                } else if (readed == Commands.FILE_LIST_REQUEST) {
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
-                    sendBuf.writeByte(Сommands.FILE_LIST_REQUEST);
+                    sendBuf.writeByte(Commands.FILE_LIST_REQUEST);
                     ctx.writeAndFlush(sendBuf);
-                } else if (readed == Сommands.FILE_DELETE) {
+                } else if (readed == Commands.FILE_DELETE) {
                     currentState = TransferState.NAME_LENGTH_TO_DELETE;
                     Server.logger.info("PROCESS: Start file deleting.");
-                } else if(readed == Сommands.DISCONNECT_REQUEST){
+                } else if(readed == Commands.DISCONNECT_REQUEST){
                     Server.logger.info("PROCESS: Start disconnect.");
                     ctx.close();
                 } else {
@@ -104,7 +104,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     buf.readBytes(fileName);
                     Server.logger.info("PROCESS: Filename to delete received - {} .", new String(fileName, StandardCharsets.UTF_8));
                     try {
-                        FileHandler.deleteFile(Paths.get(userPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
+                        FileService.deleteFile(Paths.get(userPath.toAbsolutePath().toString() + "\\" + new String(fileName)));
                         Server.logger.info("PROCESS: Delete operation success.");
                         sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                         sendBuf.writeByte((byte) 16);

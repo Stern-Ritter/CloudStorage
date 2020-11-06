@@ -1,6 +1,6 @@
 package ru.stern.client;
 
-import ru.stern.common.FileHandler;
+import ru.stern.common.FileService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
@@ -50,7 +50,7 @@ public class CloudStorageController {
 
     public void deleteFile(){
         try {
-            FileHandler.deleteFile(selectedFilePath);
+            FileService.deleteFile(selectedFilePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -60,7 +60,7 @@ public class CloudStorageController {
     public void updateFileList() {
         Platform.runLater(() -> {
             fileList.getItems().clear();
-            fileList.getItems().addAll(FileHandler.getFileList(clientPath));
+            fileList.getItems().addAll(FileService.getFileList(clientPath));
         });
     }
 

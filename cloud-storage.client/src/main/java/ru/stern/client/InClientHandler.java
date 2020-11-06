@@ -1,7 +1,7 @@
 package ru.stern.client;
 
-import ru.stern.common.Сommands;
-import ru.stern.common.FileHandler;
+import ru.stern.common.Commands;
+import ru.stern.common.FileService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -32,23 +32,23 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.COMMAND) {
                 byte readed = buf.readByte();
-                if(readed == Сommands.REG_SUCCESS){
+                if(readed == Commands.REG_SUCCESS){
                     authController.failedAction("Registration", "Registration was successful.");
                     System.out.println("PROCESS: Received from server successfully registration.");
-                } else if(readed == Сommands.REG_FAILED){
+                } else if(readed == Commands.REG_FAILED){
                     authController.failedAction("Registration", "Registration failed. Try a different username.");
                     System.out.println("PROCESS: Received from server failed registration.");
-                } else if (readed == Сommands.AUTH_SUCCESS) {
+                } else if (readed == Commands.AUTH_SUCCESS) {
                     authController.showCloudStorageWindow();
                     System.out.println("PROCESS: Received from server successfully authentication.");
-                } else  if (readed == Сommands.AUTH_FAILED) {
+                } else  if (readed == Commands.AUTH_FAILED) {
                     authController.failedAction("Authentication", "Invalid username or password.");
                     System.out.println("PROCESS: Received from server failed authentication.");
-                } else if (readed == Сommands.FILE_REQUEST) {
+                } else if (readed == Commands.FILE_REQUEST) {
                     currentState = TransferState.NAME_LENGTH;
                     receivedFileLength = 0L;
                     System.out.println("PROCESS: Start file receiving.");
-                } else if (readed == Сommands.FILE_LIST_REQUEST) {
+                } else if (readed == Commands.FILE_LIST_REQUEST) {
                     currentState = TransferState.FILE_LIST_LENGTH;
                     System.out.println("PROCESS: Start file list receiving.");
                 } else {
@@ -69,7 +69,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                     byte[] arr = new byte[fileListLength];
                     buf.readBytes(arr);
                     String result = new String(arr);
-                    List<String> list = FileHandler.stringToFileList(result);
+                    List<String> list = FileService.stringToFileList(result);
                     cloudStorageController.updateServerFileList(list);
                     currentState = TransferState.COMMAND;
                     System.out.println("PROCESS: File list received.");

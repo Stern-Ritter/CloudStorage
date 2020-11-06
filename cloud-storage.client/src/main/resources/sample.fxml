@@ -12,7 +12,7 @@
         <PasswordField fx:id="passwordField" minWidth="120" promptText="password"/>
     </HBox>
     <HBox alignment="CENTER" spacing="5">
-        <Button text = "Войти" onAction="#tryАuthentication" minWidth="60"/>
+        <Button text = "Войти" onAction="#tryAuthentication" minWidth="60"/>
         <Button text = "Регистрация" onAction="#tryRegistration" minWidth="60"/>
     </HBox>
 </VBox>

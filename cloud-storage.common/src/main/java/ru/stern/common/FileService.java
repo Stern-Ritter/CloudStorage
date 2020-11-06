@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
-public class FileHandler {
+public class FileService {
     public static void deleteFile(Path path) throws IOException {
         Files.delete(path);
     }
@@ -46,5 +46,4 @@ public class FileHandler {
         }
         return list;
     }
-
 }

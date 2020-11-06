@@ -14,7 +14,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-import ru.stern.common.Сommands;
+import ru.stern.common.Commands;
 
 import java.io.IOException;
 import java.net.URL;
@@ -77,7 +77,7 @@ public class AuthController implements Initializable {
         });
     }
 
-    public void tryАuthentication(){
+    public void tryAuthentication(){
         String login = loginField.getText().trim();
         String password = passwordField.getText().trim();
         if (login.length() != 0 && password.length() != 0) {
@@ -87,15 +87,16 @@ public class AuthController implements Initializable {
                 try {
                     connectionStarted.await();
                 } catch (InterruptedException e) {
+                    System.out.println("ERROR: Failed connect to the server.");
                     failedAction("Connection", "Failed connect to the server.");
                 }
             }
             if (Network.getInstance().getCurrentChannel() != null) {
-                CommandSender.sendLoginPassword(Сommands.AUTH_REQUEST, login, getPasswordHash(login, password,
-                                    "SHA-256"), Network.getInstance().getCurrentChannel());
+                CommandSender.sendLoginPassword(Commands.AUTH_REQUEST, login, getPasswordHash(login, password,
+                        "SHA-256"), Network.getInstance().getCurrentChannel());
             }
         } else {
-                failedAction("Authentication", "Fill in the username and password fields.");
+            failedAction("Authentication", "Fill in the username and password fields.");
         }
     }
 
@@ -109,11 +110,12 @@ public class AuthController implements Initializable {
                 try {
                     connectionStarted.await();
                 } catch (InterruptedException e) {
+                    System.out.println("ERROR: Failed connect to the server.");
                     failedAction("Connection", "Failed connect to the server.");
                 }
             }
             if (Network.getInstance().getCurrentChannel() != null) {
-                CommandSender.sendLoginPassword(Сommands.REG_REQUEST, login, getPasswordHash(login, password,
+                CommandSender.sendLoginPassword(Commands.REG_REQUEST, login, getPasswordHash(login, password,
                         "SHA-256"), Network.getInstance().getCurrentChannel());
             }
         } else {
