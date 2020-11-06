@@ -5,7 +5,6 @@ import ru.stern.common.FileHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import javafx.application.Platform;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -16,7 +15,7 @@ import java.util.List;
 
 public class InClientHandler extends ChannelInboundHandlerAdapter {
 
-    private TransferState currentState = TransferState.COM;
+    private TransferState currentState = TransferState.COMMAND;
     static CloudStorageController cloudStorageController;
     static  AuthController authController;
     private static Path clientPath = Paths.get("C:","CloudStorage");
@@ -31,13 +30,19 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
         ByteBuf buf = ((ByteBuf) msg);
         while (buf.readableBytes() > 0) {
 
-            if (currentState == TransferState.COM) {
+            if (currentState == TransferState.COMMAND) {
                 byte readed = buf.readByte();
-                if (readed == Сommands.AUTH_SUCCESS) {
+                if(readed == Сommands.REG_SUCCESS){
+                    authController.failedAction("Registration", "Registration was successful.");
+                    System.out.println("PROCESS: Received from server successfully registration.");
+                } else if(readed == Сommands.REG_FAILED){
+                    authController.failedAction("Registration", "Registration failed. Try a different username.");
+                    System.out.println("PROCESS: Received from server failed registration.");
+                } else if (readed == Сommands.AUTH_SUCCESS) {
                     authController.showCloudStorageWindow();
-                    System.out.println("PROCESS: Received from server successfully authentication..");
+                    System.out.println("PROCESS: Received from server successfully authentication.");
                 } else  if (readed == Сommands.AUTH_FAILED) {
-                    authController.failedAuthentication("Authentication", "Invalid username or password.");
+                    authController.failedAction("Authentication", "Invalid username or password.");
                     System.out.println("PROCESS: Received from server failed authentication.");
                 } else if (readed == Сommands.FILE_REQUEST) {
                     currentState = TransferState.NAME_LENGTH;
@@ -66,7 +71,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                     String result = new String(arr);
                     List<String> list = FileHandler.stringToFileList(result);
                     cloudStorageController.updateServerFileList(list);
-                    currentState = TransferState.COM;
+                    currentState = TransferState.COMMAND;
                     System.out.println("PROCESS: File list received.");
                 }
             }
@@ -99,7 +104,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.FILE) {
                 if(receivedFileLength == 0) {
-                    currentState = TransferState.COM;
+                    currentState = TransferState.COMMAND;
                     System.out.println("PROCESS: File received.");
                     cloudStorageController.updateFileList();
                     out.close();
@@ -109,7 +114,7 @@ public class InClientHandler extends ChannelInboundHandlerAdapter {
                     out.write(buf.readByte());
                     receivedFileLength++;
                     if (fileLength == receivedFileLength) {
-                        currentState = TransferState.COM;
+                        currentState = TransferState.COMMAND;
                         System.out.println("PROCESS: File received.");
                         cloudStorageController.updateFileList();
                         out.close();

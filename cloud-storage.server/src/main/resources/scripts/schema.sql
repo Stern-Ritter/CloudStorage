@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS users;
-CREATE TABLE IF NOT EXISTS users (
-id INT NOT NULL PRIMARY KEY,
-login VARCHAR(50) NOT NULL,
-password INT NOT NULL
+CREATE TABLE users (
+id int auto_increment primary key,
+login varchar(50) not null,
+password varchar(255) not null
 );

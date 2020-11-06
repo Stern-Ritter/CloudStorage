@@ -74,10 +74,10 @@ public class CommandSender {
         channel.writeAndFlush(buf);
     }
 
-    public static void sendLoginPassword(String login, int hashPassword, Channel channel){
+    public static void sendLoginPassword(byte command, String login, String hashPassword, Channel channel){
         ByteBuf buf = null;
         buf = ByteBufAllocator.DEFAULT.directBuffer(1);
-        buf.writeByte(Сommands.AUTH_REQUEST);
+        buf.writeByte(command);
         channel.writeAndFlush(buf);
         byte[] loginBytes = login.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
@@ -86,8 +86,19 @@ public class CommandSender {
         buf = ByteBufAllocator.DEFAULT.directBuffer(loginBytes.length);
         buf.writeBytes(loginBytes);
         channel.writeAndFlush(buf);
+        byte[] hashPasswordBytes = hashPassword.getBytes(StandardCharsets.UTF_8);
         buf = ByteBufAllocator.DEFAULT.directBuffer(4);
-        buf.writeInt(hashPassword);
+        buf.writeInt(hashPasswordBytes.length);
+        channel.writeAndFlush(buf);
+        buf= ByteBufAllocator.DEFAULT.directBuffer(hashPasswordBytes.length);
+        buf.writeBytes(hashPasswordBytes);
+        channel.writeAndFlush(buf);
+    }
+
+    public static void sendDisconnectRequest(Channel channel){
+        ByteBuf buf = null;
+        buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+        buf.writeByte(Сommands.DISCONNECT_REQUEST);
         channel.writeAndFlush(buf);
     }
 }

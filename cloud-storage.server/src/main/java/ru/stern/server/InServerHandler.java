@@ -15,7 +15,7 @@ import java.nio.file.*;
 
 public class InServerHandler extends ChannelInboundHandlerAdapter {
 
-    private TransferState currentState = TransferState.COM;
+    private TransferState currentState = TransferState.COMMAND;
     private Path userPath;
     private int nameLength;
     private long fileLength;
@@ -40,7 +40,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
         ByteBuf sendBuf = null;
         while (buf.readableBytes() > 0) {
 
-            if (currentState == TransferState.COM) {
+            if (currentState == TransferState.COMMAND) {
                 byte readed = buf.readByte();
                 if(readed == Сommands.FILE_REQUEST){
                     currentState = TransferState.NAME_LENGTH_TO_SEND;
@@ -56,6 +56,9 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                 } else if (readed == Сommands.FILE_DELETE) {
                     currentState = TransferState.NAME_LENGTH_TO_DELETE;
                     Server.logger.info("PROCESS: Start file deleting.");
+                } else if(readed == Сommands.DISCONNECT_REQUEST){
+                    Server.logger.info("PROCESS: Start disconnect.");
+                    ctx.close();
                 } else {
                     Server.logger.error("Invalid first byte.");
                 }
@@ -109,7 +112,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     } catch (IOException ex){
                         Server.logger.error("Delete operation failed.");
                     }
-                    currentState = TransferState.COM;
+                    currentState = TransferState.COMMAND;
                 }
             }
 
@@ -123,7 +126,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     sendBuf.writeByte((byte) 14);
                     sendBuf.writeBytes(fileName);
                     ctx.writeAndFlush(sendBuf);
-                    currentState = TransferState.COM;
+                    currentState = TransferState.COMMAND;
                 }
             }
 
@@ -137,7 +140,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
 
             if (currentState == TransferState.FILE) {
                 if(receivedFileLength == 0){
-                    currentState = TransferState.COM;
+                    currentState = TransferState.COMMAND;
                     Server.logger.info("PROCESS: File received.");
                     sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                     sendBuf.writeByte((byte) 16);
@@ -149,7 +152,7 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
                     out.write(buf.readByte());
                     receivedFileLength++;
                     if (fileLength == receivedFileLength) {
-                        currentState = TransferState.COM;
+                        currentState = TransferState.COMMAND;
                         Server.logger.info("PROCESS: File received.");
                         sendBuf = ByteBufAllocator.DEFAULT.directBuffer(1);
                         sendBuf.writeByte((byte) 16);
@@ -167,13 +170,18 @@ public class InServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        Server.logger.info("PROCESS: Client connected.");
+    }
+
+    @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         Server.logger.info("PROCESS: Client disconnected.");
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        cause.printStackTrace();
+        Server.logger.error("Connection error.");
         ctx.close();
     }
 }

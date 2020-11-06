@@ -68,6 +68,18 @@ public class OutServerHandler extends ChannelOutboundHandlerAdapter {
             ctx.writeAndFlush(buf);
             Server.logger.info("PROCESS: Send client: failed authentication.");
         }
+        if(readed == Сommands.REG_SUCCESS) {
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+            buf.writeByte(Сommands.REG_SUCCESS);
+            ctx.writeAndFlush(buf);
+            Server.logger.info("PROCESS: Send client: successfully registration.");
+        }
+        if(readed == Сommands.REG_FAILED) {
+            ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(1);
+            buf.writeByte(Сommands.REG_FAILED);
+            ctx.writeAndFlush(buf);
+            Server.logger.info("PROCESS: Send client: failed registration.");
+        }
     }
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

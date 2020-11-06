@@ -9,6 +9,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.concurrent.CountDownLatch;
+
 public class Network {
     private final static String IP_ADDRESS = "localhost";
     private final static int PORT = 8189;
@@ -26,7 +28,7 @@ public class Network {
         return currentChannel;
     }
 
-    public void start(){
+    public void start(CountDownLatch connectionStarted){
         new Thread(() -> {
             EventLoopGroup group = new NioEventLoopGroup();
             try {
@@ -41,6 +43,7 @@ public class Network {
                             }
                         });
                 ChannelFuture channelFuture = clientBootstrap.connect().sync();
+                connectionStarted.countDown();
                 channelFuture.channel().closeFuture().sync();
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -51,6 +54,7 @@ public class Network {
     }
 
     public void stop (){
+        System.out.println("PROCESS: Connection close.");
         currentChannel.close();
     }
 }
